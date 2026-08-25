@@ -18,6 +18,7 @@ import Animated, {
   FadeInRight,
 } from 'react-native-reanimated';
 import { useProducts, useCategories } from '@/src/hooks/useProducts';
+import { useDebounce } from '@/src/hooks/useDebounce';
 import { useCartStore } from '@/src/stores/cartStore';
 import { useAuthStore } from '@/src/stores/authStore';
 import { useTheme } from '@/src/hooks/useTheme';
@@ -39,9 +40,11 @@ export default function HomeScreen() {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
 
+  const debouncedSearch = useDebounce(search, 400);
+
   const filters: ProductFilters = {
     category: selectedCategory,
-    search: search.trim() || undefined,
+    search: debouncedSearch.trim() || undefined,
   };
 
   // Server state — TanStack Query
