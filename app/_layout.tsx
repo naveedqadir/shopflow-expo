@@ -1,71 +1,61 @@
-import { Fab, FabIcon } from '@/components/ui/fab';
-import { GluestackUIProvider } from '@/components/ui/gluestack-ui-provider';
-import { MoonIcon, SunIcon } from '@/components/ui/icon';
-import '@/global.css';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
-} from 'expo-router';
-import { useFonts } from 'expo-font';
-import { Slot, usePathname } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
+import React, { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useState } from 'react';
+import { Slot, useRouter, useSegments } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from '@/src/lib/queryClient';
+import { useAuthStore } from '@/src/stores/authStore';
+import { useTheme } from '@/src/hooks/useTheme';
+import * as SplashScreen from 'expo-splash-screen';
 
-export {
-  // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
-} from 'expo-router';
+export { ErrorBoundary } from 'expo-router';
 
 SplashScreen.preventAutoHideAsync();
 
-export default function RootLayout() {
-  const [loaded, error] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-    ...FontAwesome.font,
-  });
+/**
+ * Auth guard — redirects to login if not authenticated,
+ * or to home if authenticated and viewing auth screens.
+ */
+function useProtectedRoute() {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isHydrated = useAuthStore((s) => s.isHydrated);
+  const segments = useSegments();
+  const router = useRouter();
 
-  // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
-    if (error) throw error;
-  }, [error]);
+    if (!isHydrated) return; // wait for Zustand to rehydrate from SecureStore
 
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
+    const inAuthGroup = segments[0] === '(auth)';
+
+    if (!isAuthenticated && !inAuthGroup) {
+      // Not logged in → send to login
+      router.replace('/(auth)/login');
+    } else if (isAuthenticated && inAuthGroup) {
+      // Logged in but on auth screen → send to home
+      router.replace('/(tabs)');
     }
-  }, [loaded]);
-  return <RootLayoutNav />;
+  }, [isAuthenticated, isHydrated, segments]);
 }
 
-function RootLayoutNav() {
-  const pathname = usePathname();
-  const [colorMode, setColorMode] = useState<'light' | 'dark' | 'system'>(
-    'dark'
-  );
+export default function RootLayout() {
+  const { colors, isDark } = useTheme();
+  const isHydrated = useAuthStore((s) => s.isHydrated);
+
+  useProtectedRoute();
+
+  useEffect(() => {
+    // Hide splash once stores are hydrated
+    if (isHydrated) {
+      SplashScreen.hideAsync();
+    }
+  }, [isHydrated]);
 
   return (
-    <ThemeProvider value={colorMode === 'dark' ? DarkTheme : DefaultTheme}>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <GluestackUIProvider mode={colorMode}>
-          <StatusBar style={colorMode === 'dark' ? 'light' : 'dark'} />
-          <Slot />
-          {pathname === '/' && (
-            <Fab
-              onPress={() =>
-                setColorMode(colorMode === 'dark' ? 'light' : 'dark')
-              }
-              className="m-6"
-              size="lg"
-            >
-              <FabIcon as={colorMode === 'dark' ? MoonIcon : SunIcon} />
-            </Fab>
-          )}
-        </GluestackUIProvider>
+    <QueryClientProvider client={queryClient}>
+      <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.bg }}>
+        <StatusBar style={isDark ? 'light' : 'dark'} />
+        <Slot />
       </GestureHandlerRootView>
-    </ThemeProvider>
+    </QueryClientProvider>
   );
 }
