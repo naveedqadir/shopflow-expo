@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import { Package } from 'lucide-react-native';
+import { useTheme } from '@/src/hooks/useTheme';
 
 interface EmptyStateProps {
   icon?: React.ReactNode;
@@ -15,6 +16,8 @@ export default function EmptyState({
   subtitle,
   action,
 }: EmptyStateProps) {
+  const { colors } = useTheme();
+
   return (
     <View
       style={{
@@ -30,19 +33,21 @@ export default function EmptyState({
           width: 80,
           height: 80,
           borderRadius: 40,
-          backgroundColor: '#1A1A2E',
+          backgroundColor: colors.bgCard,
           alignItems: 'center',
           justifyContent: 'center',
           marginBottom: 8,
+          borderWidth: 1,
+          borderColor: colors.border,
         }}
       >
-        {icon ?? <Package size={36} color="#4A4A5A" />}
+        {icon ?? <Package size={36} color={colors.textMuted} />}
       </View>
       <Text
         style={{
           fontSize: 18,
           fontWeight: '700',
-          color: '#E0E0E0',
+          color: colors.text,
           textAlign: 'center',
         }}
       >
@@ -52,7 +57,7 @@ export default function EmptyState({
         <Text
           style={{
             fontSize: 14,
-            color: '#6B7280',
+            color: colors.textMuted,
             textAlign: 'center',
             lineHeight: 20,
           }}
