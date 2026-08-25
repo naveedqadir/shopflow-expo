@@ -94,6 +94,7 @@ ShopFlow avoids standard native defaults in favor of a **premium, custom design 
 
 - **Custom Colors**: Carefully selected palettes (`bgElevated`, `primaryMuted`, `dangerBg`) to ensure perfect contrast in both Dark and Light environments.
 - **Skeleton Loaders**: Custom shimmering skeletons provide a high-quality perception of speed while data is fetching.
+- **Order Tracking**: Comprehensive dynamic order detail screens (`app/order/[id].tsx`) that provide rich order status breakdowns and itemized receipts.
 - **Empty States**: Friendly, illustrated empty states guide the user rather than showing blank screens.
 - **Dynamic CTAs**: Buttons are context-aware (e.g., the "Add to Cart" button seamlessly transitions to a "View Cart" navigation button once an item is added).
 

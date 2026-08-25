@@ -18,6 +18,17 @@ export async function getOrders(): Promise<Order[]> {
 }
 
 /**
+ * Get a single order by ID.
+ */
+export async function getOrder(id: string): Promise<Order> {
+  return apiClient(() => {
+    const order = sessionOrders.find((o) => o.id === id);
+    if (!order) throw new Error(`Order not found: ${id}`);
+    return order;
+  }, 400);
+}
+
+/**
  * Create a new order from cart items.
  */
 export async function createOrder(items: CartItem[]): Promise<Order> {
